@@ -20,16 +20,20 @@ let map = {
 
 // set
 map = update(map, 'set', 2, ['x', 'y'])
-console.log(map.x.y) // => 2
+console.log(map.list) // => 2
+
+map = update(map, 'set', 2, ['list', 0])
+console.log(map.list) // => [2, 1]
 
 // push
 map = update(map, 'push', 2, ['list'])
-console.log(map.list) // => [0, 1, 2]
+console.log(map.list) // => [2, 1, 2]
 
+// push directly
 map = update(map.list, 'push', 3)
-console.log(map.list.length) // => [0, 1, 2, 3]
+console.log(map.list.length) // => [2, 1, 2, 3]
 
 // splice
-map = update(map, 'splice', 1, ['list'])
-console.log(map.list) // => [0, 2, 3]
+map = update(map, 'splice', 0, ['list'])
+console.log(map.list) // => [1, 2, 3]
 ```
