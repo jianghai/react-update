@@ -1,0 +1,27 @@
+{
+  "ecmaFeatures": {
+    "blockBindings": true,
+    "modules": true,
+    "experimentalObjectRestSpread": true
+  },
+  "rules": {
+    "no-var": 2,
+    "prefer-const": 2,
+    "object-shorthand": 2,
+    "no-multi-spaces": 2,
+    "spaced-comment": 2,
+    "camelcase": 2,
+    "comma-spacing": 2,
+    "jsx-quotes": 2,
+    "key-spacing": 2,
+    "indent": [2, 2],
+    "quotes": [2, "single"],
+    "linebreak-style": 0,
+    "semi": [2, "never"]
+  },
+  "env": {
+    "es6": true,
+    "browser": true
+  },
+  "extends": ["eslint:recommended"]
+}

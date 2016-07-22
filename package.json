@@ -1,0 +1,36 @@
+{
+  "name": "react-update",
+  "version": "0.0.1",
+  "description": "Better immutability helper for react",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "npm run lint && npm run unit",
+    "lint": "eslint src || true",
+    "unit": "jest || true",
+    "compile": "babel src -d lib",
+    "release": "npm run test && npm run compile && npm version patch && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jianghai/react-update.git"
+  },
+  "keywords": [
+    "react",
+    "immutability",
+    "utils"
+  ],
+  "author": "jianghai1007@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jianghai/react-update/issues"
+  },
+  "homepage": "https://github.com/jianghai/react-update#readme",
+  "dependencies": {
+    "react-addons-update": "^15.2.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.11.4",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-stage-0": "^6.5.0"
+  }
+}
