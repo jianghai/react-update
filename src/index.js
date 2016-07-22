@@ -24,7 +24,7 @@ export default (source, type, value, path) => {
         temp[key] = {}
         temp = temp[key]
       })
-    } else if (path !== undefined) {
+    } else {
       lastKey = path
     }
     temp[lastKey] = value
