@@ -24,9 +24,12 @@ console.log(map.x.y) // => 2
 
 // push
 map = update(map, 'push', 2, ['list'])
-console.log(map.list.length) // => 3
+console.log(map.list) // => [0, 1, 2]
+
+map = update(map.list, 'push', 3)
+console.log(map.list.length) // => [0, 1, 2, 3]
 
 // splice
 map = update(map, 'splice', 1, ['list'])
-console.log(map.list) // => [0, 2]
+console.log(map.list) // => [0, 2, 3]
 ```
