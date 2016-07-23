@@ -20,7 +20,7 @@ let map = {
 
 // set
 map = update(map, 'set', 2, ['x', 'y'])
-console.log(map.list) // => 2
+console.log(map.x.y) // => 2
 
 map = update(map, 'set', 2, ['list', 0])
 console.log(map.list) // => [2, 1]
@@ -31,7 +31,7 @@ console.log(map.list) // => [2, 1, 2]
 
 // push directly
 map = update(map.list, 'push', 3)
-console.log(map.list.length) // => [2, 1, 2, 3]
+console.log(map.list) // => [2, 1, 2, 3]
 
 // splice
 map = update(map, 'splice', 0, ['list'])
