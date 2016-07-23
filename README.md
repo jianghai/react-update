@@ -1,5 +1,8 @@
 ## react-update
 
+[![build status](https://img.shields.io/travis/jianghai/react-update.svg)](https://travis-ci.org/jianghai/react-update)
+[![Coverage Status](https://img.shields.io/coveralls/jianghai/react-update.svg)](https://coveralls.io/r/jianghai/react-update?branch=master)
+
 ### 主要解决什么问题？
 
 React 项目开发中，有太多的 setState 场景，且很多 state 都是嵌套的数据结构，大量的 setState 操作可以抽象成一行代码，即对数据的 set、push、splice 等，尤其在复杂表单场景的处理上堪比双向绑定般简洁，又不违背单向数据流的原则。
@@ -130,8 +133,8 @@ map = update(map, 'push', 2, list)
 console.log(map.list) // => [2, 1, 2]
 
 // push directly
-map = update(map.list, 'push', 3)
-console.log(map.list) // => [2, 1, 2, 3]
+const list = update(map.list, 'push', 3)
+console.log(list) // => [2, 1, 2, 3]
 
 // splice
 map = update(map, 'splice', 0, list)
