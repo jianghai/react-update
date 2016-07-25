@@ -1,4 +1,5 @@
 import update from 'react-addons-update'
+import warning from 'warning'
 
 function getTarget(type, value, path) {
 
@@ -34,16 +35,26 @@ function getTarget(type, value, path) {
   return target
 }
 
-export default (source, ...args) => {
+export default function(...args) {
+
+  if (!this) {
+    warning(false, 'No `this` bind to update, try `this.update = update.bind(this)` in the constructor.')
+    return 
+  }
+  
+  const source = this.state
   const type = args[0]
+  let result
+
   if (typeof type === 'string') {
-    return update(source, getTarget.apply(null, args)) 
+    result = update(source, getTarget.apply(null, args)) 
   } else {
     // Multiple props
     let result = source
     args.forEach(arg => {
       result = update(result, getTarget.apply(null, arg))
     })
-    return result
   }
+
+  this.setState(result)
 }

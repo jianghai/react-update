@@ -1,35 +1,54 @@
+import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
+import TestUtils from 'react-addons-test-utils'
 import update from '../src'
 
 describe('update', () => {
-  const map = {
-    x: {
-      y: 1
-    },
-    list: [0, 1]
+
+  class Test extends Component {
+
+    constructor() {
+      super()
+      this.update = update.bind(this)
+      this.state = {
+        x: {
+          y: 1
+        },
+        list: [0, 1]
+      }
+    }
+
+    render() {
+      return null
+    }
   }
 
+  let instance
+  let container
+
+  beforeEach(() => {
+    instance = TestUtils.renderIntoDocument(<Test />)
+    container = ReactDOM.findDOMNode(instance)
+  })
+
   it('should set works', () => {
-    const map1 = update(map, 'set', 2, 'x')
-    expect(map1.x).toBe(2)
-    const map2 = update(map, 'set', 2, ['x', 'y'])
-    expect(map2.x.y).toBe(2)
+    instance.update('set', null, 'x')
+    expect(instance.state.x).toBe(null)
+  })
+
+  it('should set nested works', () => {
+    instance.update('set', 2, ['x', 'y'])
+    expect(instance.state.x.y).toBe(2)
   })
 
   it('should push works', () => {
-    const map1 = update(map, 'push', 2, 'list')
-    expect(map1.list[2]).toBe(2)
-    const list = update(map.list, 'push', 2)
-    expect(list[2]).toBe(2)
+    instance.update('push', 2, 'list')
+    expect(instance.state.list[2]).toBe(2)
   })
 
   it('should splice works', () => {
-    const map1 = update(map, 'splice', 1, 'list')
-    expect(map1.list.length).toBe(1)
-  })
-
-  it('should multiple props works', () => {
-    const map1 = update(map, ['set', 2, ['x', 'y']], ['push', 2, 'list'])
-    expect(map1.x.y).toBe(2)
-    expect(map1.list[2]).toBe(2)
+    instance.update('splice', 0, 'list')
+    expect(instance.state.list.length).toBe(1)
+    expect(instance.state.list[0]).toBe(1)
   })
 })
