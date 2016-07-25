@@ -1,7 +1,7 @@
 import update from 'react-addons-update'
 
-export default (source, type, value, path) => {
-  
+function getTarget(type, value, path) {
+
   if (type === 'push') {
     value = [value]
   }
@@ -31,6 +31,19 @@ export default (source, type, value, path) => {
   } else {
     target = value
   }
-  
-  return update(source, target)
+  return target
+}
+
+export default (source, ...args) => {
+  const type = args[0]
+  if (typeof type === 'string') {
+    return update(source, getTarget.apply(null, args)) 
+  } else {
+    // Multiple props
+    let result = source
+    args.forEach(arg => {
+      result = update(result, getTarget.apply(null, arg))
+    })
+    return result
+  }
 }

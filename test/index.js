@@ -26,4 +26,10 @@ describe('update', () => {
     const map1 = update(map, 'splice', 1, 'list')
     expect(map1.list.length).toBe(1)
   })
+
+  it('should multiple props works', () => {
+    const map1 = update(map, ['set', 2, ['x', 'y']], ['push', 2, 'list'])
+    expect(map1.x.y).toBe(2)
+    expect(map1.list[2]).toBe(2)
+  })
 })
