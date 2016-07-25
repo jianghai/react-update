@@ -114,29 +114,39 @@ npm i --save react-update
 ```javascript
 import update from 'react-update'
 
-let map = {
+const map = {
   x: {
     y: 1
   },
   list: [0, 1]
 }
 
-// set
-map = update(map, 'set', 2, ['x', 'y'])
-console.log(map.x.y) // => 2
+let result
 
-map = update(map, 'set', 2, ['list', 0])
-console.log(map.list) // => [2, 1]
+// set
+result = update(map, 'set', null, 'x')
+console.log(result.x) // => null
+
+result = update(map, 'set', 2, ['x', 'y'])
+console.log(result.x.y) // => 2
+
+result = update(map, 'set', 2, ['list', 0])
+console.log(result.list) // => [2, 1]
 
 // push
-map = update(map, 'push', 2, list)
-console.log(map.list) // => [2, 1, 2]
+result = update(map, 'push', 2, 'list')
+console.log(result.list) // => [0, 1, 2]
 
 // push directly
-const list = update(map.list, 'push', 3)
-console.log(list) // => [2, 1, 2, 3]
+result = update(map.list, 'push', 2)
+console.log(result.list) // => [0, 1, 2]
 
 // splice
-map = update(map, 'splice', 0, list)
-console.log(map.list) // => [1, 2, 3]
+result = update(map, 'splice', 0, 'list')
+console.log(result.list) // => [1]
+
+// multiple props
+result = update(map, ['set', null, 'x'], ['push', 2, 'list'])
+console.log(result.x) // => null
+console.log(result.list) // => [0, 1, 2]
 ```
