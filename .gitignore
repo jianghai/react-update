@@ -2,3 +2,4 @@
 .com.apple.timemachine.supported
 node_modules
 lib
+*.log
