@@ -58,4 +58,9 @@ describe('update', () => {
     expect(instance.state.list.length).toBe(3)
     expect(instance.state.list[2]).toBe(2)
   })
+
+  it('should return works', () => {
+    const result = instance.update('set', 0, 'x')
+    expect(result.x).toBe(0)
+  })
 })

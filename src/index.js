@@ -69,4 +69,5 @@ export default function(...args) {
   }
 
   this.setState(result)
+  return result
 }
