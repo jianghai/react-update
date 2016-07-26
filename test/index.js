@@ -51,4 +51,11 @@ describe('update', () => {
     expect(instance.state.list.length).toBe(1)
     expect(instance.state.list[0]).toBe(1)
   })
+
+  it('should multiple works', () => {
+    instance.update(['set', 0, 'x'], ['push', 2, 'list'])
+    expect(instance.state.x).toBe(0)
+    expect(instance.state.list.length).toBe(3)
+    expect(instance.state.list[2]).toBe(2)
+  })
 })
