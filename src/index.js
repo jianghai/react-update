@@ -35,6 +35,18 @@ function getTarget(type, value, path) {
   return target
 }
 
+function updateItem(source, target, type, value, path) {
+  let prop
+  if (typeof path === 'string') {
+    prop = path
+    path = null
+  } else {
+    prop = path.shift()
+    if (!path.length) path = null
+  }
+  target[prop] = update(source[prop], getTarget(type, value, path)) 
+}
+
 export default function(...args) {
 
   if (!this) {
@@ -43,16 +55,16 @@ export default function(...args) {
   }
   
   const source = this.state
-  const type = args[0]
-  let result
+  const result = {}
 
-  if (typeof type === 'string') {
-    result = update(source, getTarget.apply(null, args)) 
+  if (typeof args[0] === 'string') {
+    args.unshift(source, result)
+    updateItem.apply(null, args)
   } else {
     // Multiple props
-    let result = source
     args.forEach(arg => {
-      result = update(result, getTarget.apply(null, arg))
+      arg.unshift(source, result)
+      updateItem.apply(null, arg)
     })
   }
 
