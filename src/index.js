@@ -70,9 +70,9 @@ export default function(...args) {
   }
   
   let source = this.state
-  let nextState = {}
-  let isSingle = typeof args[0] === 'string'
   let singleProp
+  const nextState = {}
+  const isSingle = typeof args[0] === 'string'
 
   // Update source object for multipe calls.
   // Warn: take care of it when react update.
