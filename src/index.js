@@ -1,7 +1,18 @@
+/**
+ * Copyright 2016-present, jianghai.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
+
+
 import update from 'react-addons-update'
 import warning from 'warning'
 
-function getTarget(type, value, path) {
+// Build target object for react-addons-update
+function getTarget(type, path, value) {
 
   if (type === 'push') {
     value = [value]
@@ -35,7 +46,9 @@ function getTarget(type, value, path) {
   return target
 }
 
-function updateItem(source, target, type, value, path) {
+// Destruct path with first prop and remain path.
+// Such as: ['a', 'b', 'c'] => ['a', ['b', 'c']].
+function getDestructPath(path) {
   let prop
   if (typeof path === 'string') {
     prop = path
@@ -44,9 +57,11 @@ function updateItem(source, target, type, value, path) {
     prop = path.shift()
     if (!path.length) path = null
   }
-  target[prop] = update(source[prop], getTarget(type, value, path)) 
+  return [prop, path]
 }
 
+
+// Entry
 export default function(...args) {
 
   if (!this) {
@@ -54,20 +69,35 @@ export default function(...args) {
     return 
   }
   
-  const source = this.state
-  const result = {}
+  let source = this.state
+  let nextState = {}
+  let isSingle = typeof args[0] === 'string'
+  let singleProp
 
-  if (typeof args[0] === 'string') {
-    args.unshift(source, result)
-    updateItem.apply(null, args)
-  } else {
-    // Multiple props
-    args.forEach(arg => {
-      arg.unshift(source, result)
-      updateItem.apply(null, arg)
+  // Update source object for multipe calls.
+  // Warn: take care of it when react update.
+  const queue = this._reactInternalInstance._pendingStateQueue
+  if (queue) {
+    queue.forEach(state => {
+      source = Object.assign({}, source, state)
     })
   }
 
-  this.setState(result)
-  return result
+  if (isSingle) {
+    const [type, path, value] = args
+    const [prop, remainPath] = getDestructPath(path)
+    nextState[prop] = update(source[prop], getTarget(type, remainPath, value))
+    singleProp = prop
+  } else {
+    args.forEach(([type, path, value]) => {
+      const [prop, remainPath] = getDestructPath(path)
+      if (prop in nextState) {
+        source[prop] = nextState[prop]
+      }
+      nextState[prop] = update(source[prop], getTarget(type, remainPath, value))
+    })
+  }
+
+  this.setState(nextState)
+  return isSingle ? nextState[singleProp] : nextState
 }

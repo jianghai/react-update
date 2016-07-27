@@ -32,35 +32,53 @@ describe('update', () => {
   })
 
   it('should set works', () => {
-    instance.update('set', null, 'x')
+    instance.update('set', 'x', null)
     expect(instance.state.x).toBe(null)
   })
 
   it('should set nested works', () => {
-    instance.update('set', 2, ['x', 'y'])
+    instance.update('set', ['x', 'y'], 2)
     expect(instance.state.x.y).toBe(2)
   })
 
   it('should push works', () => {
-    instance.update('push', 2, 'list')
+    instance.update('push', 'list', 2)
     expect(instance.state.list[2]).toBe(2)
   })
 
   it('should splice works', () => {
-    instance.update('splice', 0, 'list')
+    instance.update('splice', 'list', 0)
     expect(instance.state.list.length).toBe(1)
     expect(instance.state.list[0]).toBe(1)
   })
 
-  it('should multiple works', () => {
-    instance.update(['set', 0, 'x'], ['push', 2, 'list'])
+  it('should multiple orders once work', () => {
+    instance.update(['set', 'x', 0], ['push', 'list', 2])
     expect(instance.state.x).toBe(0)
     expect(instance.state.list.length).toBe(3)
     expect(instance.state.list[2]).toBe(2)
   })
 
+  it('should multiple calls work', () => {
+    instance.update('set', 'x', 0)
+    instance.update('push', 'list', 2)
+    expect(instance.state.x).toBe(0)
+    expect(instance.state.list.length).toBe(3)
+    expect(instance.state.list[2]).toBe(2)
+  })
+
+  it('should multiple orders on single prop work', () => {
+    instance.update(['set', ['x', 'y'], 0], ['set', ['x', 'z'], 0])
+    expect(instance.state.x.y).toBe(0)
+    expect(instance.state.x.z).toBe(0)
+  })
+
   it('should return works', () => {
-    const result = instance.update('set', 0, 'x')
+    let result
+    result = instance.update('set', 'x', 0)
+    expect(result).toBe(0)
+    result = instance.update(['set', 'x', 0], ['push', 'list', 2])
     expect(result.x).toBe(0)
+    expect(result.list.length).toBe(3)
   })
 })
