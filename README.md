@@ -1,10 +1,10 @@
-## react-update
+# react-update
 
 [![build status](https://img.shields.io/travis/jianghai/react-update.svg)](https://travis-ci.org/jianghai/react-update)
 
 以不可变的方式便捷更新 state
 
-### 单个组件内实际使用对比
+## 单个组件内实际使用对比
 
 #### 使用前
 
@@ -96,18 +96,19 @@ class Todos extends Component {
 }
 ```
 
-### 主要解决什么问题？
+## 主要解决什么问题？
 
-1、React 项目开发中，有太多的 setState 场景，且很多 state 都是嵌套的数据结构，大量的 setState 操作可以抽象成一行代码，即对数据的 set、push、splice 等，尤其在复杂表单场景的处理上堪比双向绑定般简洁，又不违背单向数据流的原则。
+1. React 项目开发中，有太多的 setState 场景，且很多 state 都是嵌套的数据结构，大量的 setState 操作可以抽象成一行代码，即对数据的 set、push、splice 等，尤其在复杂表单场景的处理上堪比双向绑定般简洁，又不违背单向数据流的原则。
 
-2、React 组件间没有绑定数据关系，组件通信遵循单向数据流方式，便于测试、维护。但单向数据流要求数据自上而下流动，且组件的嵌套关系常常是数据的嵌套关系，导致任何一个子组件相关的数据改变后都需要通知父级，即任何一次细小的改变可能让庞大的组件树重新执行一遍虚拟 DOM 的计算，虽然可以用 shouldComponentUpdate 做优化，但需要数据是不可变的才能快速比较是否变化，所以需要一个工具可以方便更新 state 并保证数据是不可变的。
+1. React 组件间没有绑定数据关系，组件通信遵循单向数据流方式，便于测试、维护。但单向数据流要求数据自上而下流动，且组件的嵌套关系常常是数据的嵌套关系，导致任何一个子组件相关的数据改变后都需要通知父级，即任何一次细小的改变可能让庞大的组件树重新执行一遍虚拟 DOM 的计算，虽然可以用 shouldComponentUpdate 做优化，但需要数据是不可变的才能快速比较是否变化，所以需要一个工具可以方便更新 state 并保证数据是不可变的。
 
-### 为什么不用 Redux 等数据流方案？
+## 为什么不用 Redux 等数据流方案？
 
 1. 不是特别复杂的交互场景下，以局部 state 更新为主，没有必要全部通过跟节点开始渲染，且组件的嵌套性决定状态的非扁平性
-2. 目前为止还没有必要抽离 store、view、action，产品的可维护性瓶颈不在于此，没必要带来更多的学习成本
 
-### 如何处理组件间的通信？
+1. 目前为止还没有必要抽离 store、view、action，产品的可维护性瓶颈不在于此，没必要带来更多的学习成本
+
+## 如何处理组件间的通信？
 
 父子组件、可复用的组件（组件库、项目内公共的组件）通过回调去通知调用者，避免使用 context 等方式来保证可复用组件的纯粹性。
 
@@ -126,13 +127,13 @@ class Child extends Component {
 
 **大范围的更新请做好 shouldComponentUpdate 判断**
 
-### Installation
+## Installation
 
 ```sh
 npm i --save react-update
 ```
 
-### API
+## API
 
 ```javascript
 
@@ -159,7 +160,7 @@ update('set', 'x', 0) // => 0
 update(['set', 'x', 0], ['push', 'list', 1]) // => {x: 0, list: [0, 1]}
 ```
 
-### 特性
+## 特性
 
 * update 的处理过程是不可变的，所以 update 之后，this.state 的值并未改变，方便做 shouldComponentUpdate 性能优化
 * update 返回值是改变后的值
