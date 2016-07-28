@@ -11,6 +11,8 @@
 import update from 'react-addons-update'
 import warning from 'warning'
 
+const LAST_STATE = '__lastState'
+
 // Build target object for react-addons-update
 function getTarget(type, path, value) {
 
@@ -70,7 +72,6 @@ export default function(...args) {
   }
   
   let source = this.state
-  let singleProp
   const nextState = {}
   const isSingle = typeof args[0] === 'string'
 
@@ -78,20 +79,21 @@ export default function(...args) {
   // Warn: take care of it when react update.
   const queue = this._reactInternalInstance._pendingStateQueue
   if (queue) {
-    queue.forEach(state => {
-      source = Object.assign({}, source, state)
-    })
+    this[LAST_STATE] = Object.assign(this[LAST_STATE] || {}, queue[queue.length - 1])
+    source = Object.assign({}, source, this[LAST_STATE])
+  } else {
+    delete this[LAST_STATE]
   }
 
   if (isSingle) {
     const [type, path, value] = args
     const [prop, remainPath] = getDestructPath(path)
     nextState[prop] = update(source[prop], getTarget(type, remainPath, value))
-    singleProp = prop
   } else {
     args.forEach(([type, path, value]) => {
       const [prop, remainPath] = getDestructPath(path)
       if (prop in nextState) {
+        // Prevent to be overrided
         source[prop] = nextState[prop]
       }
       nextState[prop] = update(source[prop], getTarget(type, remainPath, value))
@@ -99,5 +101,6 @@ export default function(...args) {
   }
 
   this.setState(nextState)
-  return isSingle ? nextState[singleProp] : nextState
+  const keys = Object.keys(nextState)
+  return keys.length === 1 ? nextState[keys[0]] : nextState
 }
