@@ -51,11 +51,10 @@ function getTarget(type, path, value) {
 // Destruct path with first prop and remain path.
 // Such as: ['a', 'b', 'c'] => ['a', ['b', 'c']].
 function getDestructPath(path) {
-  let prop
   if (typeof path === 'string') {
     path = path.split(/\.|\[|\]/).filter(v => !!v)
   } 
-  prop = path.shift()
+  const prop = path.shift()
   if (!path.length) path = null
   return [prop, path]
 }
