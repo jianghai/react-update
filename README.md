@@ -2,9 +2,9 @@
 
 [![build status](https://img.shields.io/travis/jianghai/react-update.svg)](https://travis-ci.org/jianghai/react-update)
 
-以不可变的方式便捷更新 state
+以不可变的方式便捷更新 state。
 
-setState easy and immutably
+Make setState easily and immutably.
 
 ![react-update](https://cdn.rawgit.com/jianghai/react-update/master/workflow.svg)
 
