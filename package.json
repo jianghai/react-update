@@ -1,7 +1,7 @@
 {
   "name": "react-update",
   "version": "0.1.0",
-  "description": "Better immutability helper for react",
+  "description": "Make setState easily and immutably",
   "main": "lib/index.js",
   "scripts": {
     "test": "npm run lint && npm run unit",
