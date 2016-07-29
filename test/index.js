@@ -31,6 +31,15 @@ describe('update', () => {
     return TestUtils.renderIntoDocument(<Test update={update} />)
   }
 
+  it('should split works', () => {
+    const { state } = render(instance => {
+      instance.update('set', 'x.y', 1)
+      instance.update('set', 'list[0]', 1)
+    })
+    expect(state.x.y).toBe(1)
+    expect(state.list[0]).toBe(1)
+  })
+
   it('should set works', () => {
     const { state } = render(instance => {
       instance.update('set', 'a', 1)

@@ -53,12 +53,10 @@ function getTarget(type, path, value) {
 function getDestructPath(path) {
   let prop
   if (typeof path === 'string') {
-    prop = path
-    path = null
-  } else {
-    prop = path.shift()
-    if (!path.length) path = null
-  }
+    path = path.split(/\.|\[|\]/).filter(v => !!v)
+  } 
+  prop = path.shift()
+  if (!path.length) path = null
   return [prop, path]
 }
 
