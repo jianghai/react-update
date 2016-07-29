@@ -121,22 +121,23 @@ npm i --save react-update
 
 // Basic set, push, splice
 update('set', 'x', 0)
+update('set', 'a.b', 0)
 update('set', ['a', 'b'], 0)
 update('push', 'list', 1)
 update('splice', 'list', 0) // 0 is the index which would be removed
-update('set', ['list', 0], 'hello')
+update('set', 'list[0]', 'hello')
 
 // Multiple orders
 update(['set', 'x', 0], ['push', 'list', 1])
 
 // Return value
 update('set', 'x', 0) // => 0
-update(['set', ['a', 'b'], 0], ['set', ['a', 'c'], 0]) // => {b: 0, c: 0}
+update(['set', 'a.b', 0], ['set', 'a.c', 0]) // => {b: 0, c: 0}
 update(['set', 'x', 0], ['push', 'list', 1]) // => {x: 0, list: [0, 1]}
 
 // Multile calls will not trigger an additional render
-update('set', ['a', 'b'], 0)
-update('set', ['a', 'c'], 0)
+update('set', 'a.b', 0)
+update('set', 'a.c', 0)
 // When receiveProps finishs
 console.log(this.state.a) // {b: 0, c: 0}
 ```
