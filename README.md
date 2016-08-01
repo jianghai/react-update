@@ -6,7 +6,7 @@
 
 A simple solution of data flow for React.
 
-![react-update](https://cdn.rawgit.com/jianghai/react-update/master/workflow.svg)
+![react-update](https://rawgit.com/jianghai/react-update/master/workflow.svg)
 
 ## Installation
 
