@@ -16,7 +16,7 @@ npm i --save react-update
 
 ## Usage
 
-#### setState immutably
+#### 不可变的方式 setState
 
 ```javascript
 import update from 'react-update'
@@ -34,7 +34,7 @@ class App extends Component {
 }
 ```
 
-#### Communication between the components
+#### 组件间通信
 
 ```javascript
 import update from 'react-update'
@@ -53,7 +53,7 @@ class Child extends Component {
     // this.parent.update ...
   }
 }
-
+```
 
 ## API
 
@@ -114,7 +114,7 @@ update.get(name)
 
 ## 注意
 
-1. 单向数据流 + 不可变数据结合 `shouldComponentUpdate` 才能发挥极致，为了避免反复的声明 `shouldComponentUpdate`，默认加载 `react-update` 后所有的 ES6 组件写法均自动做了 `shouldComponentUpdate` 判断（因匿名函数的存在，函数类型值忽略），所以类似这种写法：
+##### 单向数据流 + 不可变数据结合 `shouldComponentUpdate` 才能发挥极致，为了避免反复的声明 `shouldComponentUpdate`，默认加载 `react-update` 后所有的 ES6 组件写法均自动做了 `shouldComponentUpdate` 判断（因匿名函数的存在，函数类型值忽略），所以类似这种写法：
 
 ```javascript
 render() {
@@ -135,4 +135,4 @@ render() {
 }
 ```
 
-1. 手动做 `shouldComponentUpdate` 判断则以手动判断的逻辑为准
+##### 手动做 `shouldComponentUpdate` 判断则以手动判断的逻辑为准
