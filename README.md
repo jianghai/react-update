@@ -2,109 +2,58 @@
 
 [![build status](https://img.shields.io/travis/jianghai/react-update.svg)](https://travis-ci.org/jianghai/react-update)
 
-以不可变的方式便捷更新 state。
+一个简单的 React 数据流解决方案。
 
-Make setState easily and immutably.
+A simple solution of data flow for React.
 
 ![react-update](https://cdn.rawgit.com/jianghai/react-update/master/workflow.svg)
-
-## 单个组件内实际使用对比（Compare）
-
-#### Before
-
-```javascript
-class Todos extends Component {
-  
-  constructor() {
-    super()
-    this.state = {
-      text: '',
-      items: []
-    }
-  }
-
-  handleInput(e) {
-    this.setState({text: e.target.value})
-  }
-
-  handleAdd() {
-    const items = this.state.items
-    const nextItems = items.concat([{text: this.state.text}])
-    this.setState({items: nextItems})
-  }
-
-  handleRemove(index) {
-    const nextItems = this.state.items.concat()
-    nextItems.splice(index, 1)
-    this.setState({items: nextItems})
-  }
-
-  render() {
-    const { text, items } = this.state
-    return (
-      <div>
-        <input type="text" value={value} onChange={e => this.handleInput(e)} />
-        <button onClick={() => this.handleAdd()}>Add</button>
-        <ul>
-          {items.map((item, i) => {
-            return (
-              <li key={i}>
-                {item.text}
-                <button onClick={() => this.handleRemove(i)}></button>
-              </li>
-            )
-          })}
-        </ul>
-      </div>
-    )
-  }
-}
-```
-
-#### After
-
-```javascript
-import update from 'react-update'
-
-class Todos extends Component {
-  
-  constructor() {
-    super()
-    this.update = update.bind(this)
-    this.state = {
-      text: '',
-      items: []
-    }
-  }
-
-  render() {
-    const { text, items } = this.state
-    const update = this.update
-    return (
-      <div>
-        <input type="text" value={text} onChange={e => update('set', 'text', e.target.value)} />
-        <button onClick={() => update('push', 'items', { text })}>Add</button>
-        <ul>
-          {items.map((item, i) => {
-            return (
-              <li key={i}>
-                {item.text}
-                <button onClick={() => update('splice', 'items', i)}></button>
-              </li>
-            )
-          })}
-        </ul>
-      </div>
-    )
-  }
-}
-```
 
 ## Installation
 
 ```sh
 npm i --save react-update
 ```
+
+## Usage
+
+#### setState immutably
+
+```javascript
+import update from 'react-update'
+
+class App extends Component {
+  
+  constructor() {
+    super()
+    this.update = update.bind(this)
+  }
+  
+  handleAdd(text) {
+    this.update('push', 'list', { text })
+  }
+}
+```
+
+#### Communication between the components
+
+```javascript
+import update from 'react-update'
+
+class Parent extends Component {
+  constructor() {
+    super()
+    this.update = update.bind(this, 'parent')
+  }
+}
+
+class Child extends Component {
+  constructor() {
+    super()
+    this.parent = update.get('parent')
+    // this.parent.update ...
+  }
+}
+
 
 ## API
 
@@ -119,7 +68,7 @@ npm i --save react-update
   list: [0]
 }
 
-// Basic set, push, splice
+// 基本的 set, push, splice
 update('set', 'x', 0)
 update('set', 'a.b', 0)
 update('set', ['a', 'b'], 0)
@@ -127,12 +76,21 @@ update('push', 'list', 1)
 update('splice', 'list', 0) // 0 is the index which would be removed
 update('set', 'list[0]', 'hello')
 
-// Multiple orders
+// 多条操作
+// 相同类型
+update('set', {
+  x: 2,
+  'a.b': 2
+})
+// 不同类型
 update(['set', 'x', 0], ['push', 'list', 1])
 
-// Return value
+// 返回值
 update('set', 'x', 0) // => 0
-update(['set', 'a.b', 0], ['set', 'a.c', 0]) // => {b: 0, c: 0}
+update('set', {
+  'a.b': 0, 
+  'a.c': 0
+}) // => {b: 0, c: 0}
 update(['set', 'x', 0], ['push', 'list', 1]) // => {x: 0, list: [0, 1]}
 
 // Multile calls will not trigger an additional render
@@ -140,4 +98,41 @@ update('set', 'a.b', 0)
 update('set', 'a.c', 0)
 // When receiveProps finishs
 console.log(this.state.a) // {b: 0, c: 0}
+
+// 给组件绑定 this.update，如果指定 name（不可重复），则可通过 update.get 获取
+// this.update = update(this, 'parent')
+update.bind(instance, [name])
+
+// 访问其它组件，this.parent = update.get('parent')
+update.get(name)
 ```
+
+## 开发者调试功能
+
+非 production 模式下，调用 update 后，控制台输出 update 所属组件更新后的 state，方便定位问题
+
+
+## 注意
+
+1. 单向数据流 + 不可变数据结合 `shouldComponentUpdate` 才能发挥极致，为了避免反复的声明 `shouldComponentUpdate`，默认加载 `react-update` 后所有的 ES6 组件写法均自动做了 `shouldComponentUpdate` 判断（因匿名函数的存在，函数类型值忽略），所以类似这种写法：
+
+```javascript
+render() {
+  return <div style={{color: '#999'}}></div>
+}
+```
+
+需要改成
+
+```javascript
+constructor() {
+  this.style = {
+    color: '#999'
+  }
+}
+render() {
+  return <div style={this.style}></div>
+}
+```
+
+1. 手动做 `shouldComponentUpdate` 判断则以手动判断的逻辑为准

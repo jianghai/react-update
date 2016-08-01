@@ -6,7 +6,6 @@ import update from '../src'
 describe('update', () => {
 
   class Test extends Component {
-
     constructor() {
       super()
       this.update = update.bind(this)
@@ -17,11 +16,9 @@ describe('update', () => {
         list: [0]
       }
     }
-
     componentWillMount() {
       this.props.update && this.props.update(this)
     }
-
     render() {
       return null
     }
@@ -121,5 +118,71 @@ describe('update', () => {
       expect(list[1]).toBe(1)
       expect(list[2]).toBe(1)
     })
+  })
+
+  it('should set multiple as object works', () => {
+    render(instance => {
+      const result = instance.update('set', {
+        'x.y': 1,
+        'x.z': 1,
+        list: 1
+      })
+      expect(result.x.y).toBe(1)
+      expect(result.x.z).toBe(1)
+      expect(result.list).toBe(1)
+    })
+  })
+
+  it('should update.get works', () => {
+    let parent
+    class Child extends Component {
+      constructor() {
+        super()
+        parent = update.get('parent')
+      }
+      render() {
+        return null
+      }
+    }
+    class Parent extends Component {
+      constructor() {
+        super()
+        this.update = update.bind(this, 'parent')
+      }
+      render() {
+        return <Child />
+      }
+    }
+    const instance = TestUtils.renderIntoDocument(<Parent />)
+    expect(parent).toEqual(instance)
+  })
+
+  it('should shouldComponentUpdate works', () => {
+    const childRender = jest.fn()
+    class Child extends Component {
+      constructor() {
+        super()
+      }
+      render() {
+        childRender()
+        return null
+      }
+    }
+    class Parent extends Component {
+      constructor() {
+        super()
+        this.update = update.bind(this)
+        this.state = {
+          x: 0,
+          a: {b: 1}
+        }
+      }
+      render() {
+        return <Child fn={() => 1} a={this.state.a} />
+      }
+    }
+    const instance = TestUtils.renderIntoDocument(<Parent />)
+    instance.update('set', 'x', 1)
+    expect(childRender.mock.calls.length).toBe(1)
   })
 })
