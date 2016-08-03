@@ -4,6 +4,15 @@
 
 Make setState easily and immutably.
 
+## 解决什么问题？
+
+1、我们需要不可变数据，利用 shouldComponentUpdate 做性能优化
+
+2、很多 state 结构是嵌套的，如 Tree 组件、父子组件通信等场景
+
+3、实际开发中，大量的交互只是对 state 的处理，可以抽象成对数据的赋值、添加、删除等操作，减少了大量的重复代码
+
+
 ## Installation
 
 ```sh
@@ -12,7 +21,7 @@ npm i --save react-update
 
 ## Usage
 
-#### 单个组建内
+#### 单个组件
 
 ```javascript
 import update from 'react-update'
@@ -110,7 +119,7 @@ update('set', {
 // 不同类型
 update(['set', 'x', 0], ['push', 'list', 1])
 
-// 返回值
+// 返回值，当一些操作依赖更新后的结果时
 update('set', 'x', 0) // => 0
 update('set', {
   'a.b': 0, 
