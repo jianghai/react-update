@@ -109,60 +109,11 @@ const update = function(...args) {
   this.setState(nextState)
 
   if (process.env.NODE_ENV !== 'production') {
-    console.info(this.constructor.name + ' render: ', nextState)
+    console.info(this.constructor.name + ' new state: ', nextState)
   }
 
   const keys = Object.keys(nextState)
   return keys.length === 1 ? nextState[keys[0]] : nextState
-}
-
-// Save instances of components to be visited by other components
-update.instances = {}
-
-update.bind = function(instance, name) {
-  if (name) {
-    if (name in update.instances) {
-      warning(false, `A component named '${name}' has been bind.`)
-    } else {
-      update.instances[name] = instance
-
-      // Unbind when unmount
-      const unmount = instance.componentWillUnmount
-      instance.componentWillUnmount = () => {
-        unmount && unmount.call(instance)
-        delete update.instances[name]
-      }
-    }
-  }
-  return (...args) => update.apply(instance, args)
-}
-
-update.get = function(name) {
-  const component = update.instances[name]
-  warning(!!component, `No component named '${name}' found, make sure it has been bind or exist in the DOM.`)
-  return component
-}
-
-// ShadowEqual except function props.
-function isEqual(source, target) {
-  if (!source) return true
-  return Object.keys(source).every(key => {
-    let isEqual = true
-    const prop = source[key]
-    if (typeof prop !== 'function' && target[key] !== source[key]) {
-      isEqual = false
-    }
-    return isEqual
-  })
-}
-
-// Global optimizing for immutable data.
-const prototype = React.Component.prototype
-if (!prototype.shouldComponentUpdate) {
-  prototype.shouldComponentUpdate = function(nextProps, nextState) {
-    if (nextProps.children) return true
-    return !(isEqual(nextProps, this.props) && isEqual(nextState, this.state))
-  }
 }
 
 export default update
