@@ -2,11 +2,7 @@
 
 [![build status](https://img.shields.io/travis/jianghai/react-update.svg)](https://travis-ci.org/jianghai/react-update)
 
-一个简单的 React 数据流解决方案。
-
-A simple solution of data flow for React.
-
-![react-update](https://cdn.rawgit.com/jianghai/react-update/master/workflow.svg)
+Make setState easily and immutably.
 
 ## Installation
 
@@ -16,7 +12,7 @@ npm i --save react-update
 
 ## Usage
 
-#### 不可变的方式 setState
+#### 单个组建内
 
 ```javascript
 import update from 'react-update'
@@ -36,21 +32,46 @@ class App extends Component {
 
 #### 组件间通信
 
+子组件的数据随父级变化而变化，因此子组件“改变”数据后需要通知父组件
+
 ```javascript
 import update from 'react-update'
 
 class Parent extends Component {
+  
   constructor() {
     super()
-    this.update = update.bind(this, 'parent')
+    this.update = update.bind(this)
+  }
+  
+  handleChange(...args) {
+    this.update(args)
+  }
+
+  render() {
+    return <Child onChange={::this.handleChange} />
   }
 }
 
 class Child extends Component {
-  constructor() {
-    super()
-    this.parent = update.get('parent')
-    // this.parent.update ...
+  render() {
+    return <Grandson {...this.props} />
+  }
+}
+
+class Grandson extends Component {
+  
+  handleChange(...args) {
+    this.props.onChange(args)
+  }
+
+  render() {
+    return (
+      <div>
+        <input type="text" onChange={e => this.handleChange('set', 'name', e.target.value)}>
+        <button onClick={() => this.handleChange('push', 'list', {})}>Add</button>
+      </div>
+    )
   }
 }
 ```
@@ -93,18 +114,10 @@ update('set', {
 }) // => {b: 0, c: 0}
 update(['set', 'x', 0], ['push', 'list', 1]) // => {x: 0, list: [0, 1]}
 
-// Multile calls will not trigger an additional render
+// 多次调用不会造成多次渲染，后面的更新也不会覆盖前面的更新
 update('set', 'a.b', 0)
 update('set', 'a.c', 0)
-// When receiveProps finishs
-console.log(this.state.a) // {b: 0, c: 0}
-
-// 给组件绑定 this.update，如果指定 name（不可重复），则可通过 update.get 获取
-// this.update = update(this, 'parent')
-update.bind(instance, [name])
-
-// 访问其它组件，this.parent = update.get('parent')
-update.get(name)
+// => {a: {b: 0, c: 0}}
 ```
 
 ## 开发者调试功能
@@ -112,9 +125,41 @@ update.get(name)
 非 production 模式下，调用 update 后，控制台输出 update 所属组件更新后的 state，方便定位问题
 
 
-## 注意
+## shouldComponentUpdate 优化
 
-##### 单向数据流 + 不可变数据结合 `shouldComponentUpdate` 才能发挥极致，为了避免反复的声明 `shouldComponentUpdate`，默认加载 `react-update` 后所有的 ES6 组件写法均自动做了 `shouldComponentUpdate` 判断（因匿名函数的存在，函数类型值忽略），所以类似这种写法：
+update 的处理过程是不可变的，结合 shouldComponentUpdate 优化才能发挥其核心价值，为了省事，无需每个组件单独添加 shouldComponentUpdate 方法，全局定义一下即可:
+
+```javascript
+// ShadowEqual except function props.
+function isEqual(source, target) {
+  if (!source) return true
+  return Object.keys(source).every(key => {
+    let isEqual = true
+    const prop = source[key]
+    if (typeof prop !== 'function' && target[key] !== source[key]) {
+      isEqual = false
+    }
+    return isEqual
+  })
+}
+
+// Global optimizing for immutable data.
+const prototype = React.Component.prototype
+if (!prototype.shouldComponentUpdate) {
+  prototype.shouldComponentUpdate = function(nextProps, nextState) {
+    if (nextProps.children) return true
+    return !(isEqual(nextProps, this.props) && isEqual(nextState, this.state))
+  }
+}
+```
+
+组件写法上也要注意：
+
+1、使用 class 代替 React.createClass
+
+2、除函数类型外，不要重写创建对象，否则无法保证相等
+
+例如
 
 ```javascript
 render() {
@@ -134,5 +179,3 @@ render() {
   return <div style={this.style}></div>
 }
 ```
-
-##### 手动做 `shouldComponentUpdate` 判断则以手动判断的逻辑为准
