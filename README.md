@@ -32,7 +32,11 @@ class App extends Component {
 
 #### 组件间通信
 
-子组件的数据随父级变化而变化，因此子组件“改变”数据后需要通知父组件
+父组件－中间组件－子组件为例，子组件的数据随父级变化而变化，因此子组件“改变”数据后需要通知父组件。
+
+但请注意，子组件通知跨级的父组件并不需要一级一级往上回调，而是父组件的回调已预先传给子组件，中间组件只是负责父组件的回调转发给子组件即可。
+
+此外，中间组件的转发并非毫无意义，如果抛开父组件，中间组件定义好的 props 本身就已明确了输入和输出，又可以被其它场景下复用了。
 
 ```javascript
 import update from 'react-update'
@@ -53,13 +57,13 @@ class Parent extends Component {
   }
 }
 
-class Child extends Component {
+class Middle extends Component {
   render() {
-    return <Grandson {...this.props} />
+    return <Child {...this.props} />
   }
 }
 
-class Grandson extends Component {
+class Child extends Component {
   
   handleChange(...args) {
     this.props.onChange(args)
