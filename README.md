@@ -14,68 +14,37 @@ npm i --save react-update
 
 ## Usage
 
-#### 单个组件
-
 ```javascript
 import update from 'react-update'
 
-class App extends Component {
-  
+class Todos extends Component {
+
   constructor() {
     super()
     this.update = update.bind(this)
-  }
-  
-  handleAdd(text) {
-    this.update('push', 'list', { text })
-  }
-}
-```
-
-#### 组件间通信
-
-父组件－中间组件－子组件为例，子组件的数据随父级变化而变化，因此子组件“改变”数据后需要通知父组件。
-
-但请注意，子组件通知跨级的父组件并不需要一级一级往上回调，而是父组件的回调已预先传给子组件，中间组件只是负责父组件的回调转发给子组件即可。
-
-此外，中间组件的转发并非毫无意义，如果抛开父组件，中间组件定义好的 props 本身就已明确了输入和输出，又可以被其它场景下复用了。
-
-```javascript
-import update from 'react-update'
-
-class Parent extends Component {
-  
-  constructor() {
-    super()
-    this.update = update.bind(this)
-  }
-  
-  handleChange(...args) {
-    this.update(args)
+    this.state = {
+      text: '',
+      items: []
+    }
   }
 
   render() {
-    return <Child onChange={::this.handleChange} />
-  }
-}
-
-class Middle extends Component {
-  render() {
-    return <Child {...this.props} />
-  }
-}
-
-class Child extends Component {
-  
-  handleChange(...args) {
-    this.props.onChange(args)
-  }
-
-  render() {
+    const { text, items } = this.state
+    const update = this.update
     return (
       <div>
-        <input type="text" onChange={e => this.handleChange('set', 'name', e.target.value)}>
-        <button onClick={() => this.handleChange('push', 'list', {})}>Add</button>
+        <input type="text" value={text} onChange={e => update('set', 'text', e.target.value)} />
+        <button onClick={() => update('push', 'items', { text })}>Add</button>
+        <ul>
+          {items.map((item, i) => {
+            return (
+              <li key={i}>
+                {item.text}
+                <button onClick={() => update('splice', 'items', i)}></button>
+              </li>
+            )
+          })}
+        </ul>
       </div>
     )
   }
@@ -92,44 +61,22 @@ class Child extends Component {
 
 ```javascript
 
-// state
-{
-  x: 1,
-  a: {
-    b: 1
-  },
-  list: [0]
-}
-
-// 基本的 set, push, splice
+// set
 update('set', 'x', 0)
+update('set', {x: 0})
+update('set', {x: 0, y: 0})
 update('set', 'a.b', 0)
 update('set', ['a', 'b'], 0)
+
+// push
 update('push', 'list', 1)
-update('splice', 'list', 0) // 0 is the index which would be removed
-update('set', 'list[0]', 'hello')
 
-// 多条操作
-// 相同类型
-update('set', {
-  x: 2,
-  'a.b': 2
-})
-// 不同类型
-update(['set', 'x', 0], ['push', 'list', 1])
+// splice
+update('splice', 'list', 0)
 
-// 返回值，当一些操作依赖更新后的结果时
-update('set', 'x', 0) // => 0
-update('set', {
-  'a.b': 0, 
-  'a.c': 0
-}) // => {b: 0, c: 0}
-update(['set', 'x', 0], ['push', 'list', 1]) // => {x: 0, list: [0, 1]}
-
-// 多次调用不会造成多次渲染，后面的更新也不会覆盖前面的更新
-update('set', 'a.b', 0)
-update('set', 'a.c', 0)
-// => {a: {b: 0, c: 0}}
+// return value
+this.state = {x: {y: 1}}
+update('set', 'x.y': 0) // => {x: {y: 0}}
 ```
 
 ## 开发者调试功能
