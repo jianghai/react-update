@@ -1,6 +1,8 @@
 # react-update
 
 [![build status](https://img.shields.io/travis/jianghai/react-update.svg)](https://travis-ci.org/jianghai/react-update)
+[![npm package](https://img.shields.io/npm/v/react-update.svg)](https://www.npmjs.org/package/react-update) 
+[![NPM downloads](http://img.shields.io/npm/dm/react-update.svg)](https://npmjs.org/package/react-update)
 
 Make setState easily and immutably.
 
