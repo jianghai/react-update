@@ -116,4 +116,8 @@ const update = function(...args) {
   return keys.length === 1 ? nextState[keys[0]] : nextState
 }
 
+update.silent = (target, type, value, path) => {
+  return _update(target, getTarget(type, path, value))
+}
+
 export default update
