@@ -11,10 +11,8 @@ import { Component } from 'react'
 import reactAddonsUpdate from 'react-addons-update'
 import warning from 'warning'
 
-
 const LAST_STATE = '__lastState'
 const isPlainObject = obj => Object.prototype.toString.call(obj) === '[object Object]'
-
 
 const getExtendDataCommand = (type, value) => {
   if (type === 'push') {
@@ -27,7 +25,6 @@ const getExtendDataCommand = (type, value) => {
   }
   return value
 }
-
 
 // [a, b] with 1 => {a: {b: 1}}
 const getNestedDataTarget = (path, value) => {
@@ -51,12 +48,10 @@ const getNestedDataTarget = (path, value) => {
   return target
 }
 
-
 // Get the second parameter of `https://facebook.github.io/react/docs/update.html`
 const getExtendData = (type, path, value) => {
   return getNestedDataTarget(path, getExtendDataCommand(type, value))
 }
-
 
 // 'a.b.c' => ['a', 'b', 'c']
 const getPathArray = path => {
@@ -65,7 +60,6 @@ const getPathArray = path => {
   }
   return path
 }
-
 
 // Destruct path with first prop and remain path.
 // Such as: 'a.b.c' or ['a', 'b', 'c'] and return ['a', ['b', 'c']].
@@ -76,18 +70,16 @@ const getDestructPath = path => {
   return [prop, path]
 }
 
-
 // Get the result of `https://facebook.github.io/react/docs/update.html`
 const getSingleExtendData = (source, type, path, value) => {
   return reactAddonsUpdate(source, getExtendData(type, path, value))
 }
 
-
 // If you bind update to the instance of React Component, the arguments could be 
 // [type, path, value] or [type, {path1: value1, path2: value2}] which was changed 
 // based on the component state and execute stateState automatically. 
 // Another way, if you call update purely, the argumets could be 
-// [target, type, value, path], the path is not required and will not execute stateState.
+// [target, type, path, value], the path is not required and will not execute stateState.
 // Anyway, the return value of update would be the newData, if you changed multuple 
 // props, the newData would be an key-value object.
 const update = function(...args) {

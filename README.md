@@ -6,6 +6,11 @@
 
 Make setState easily and immutably.
 
+So, why not use [immutability-helper](https://github.com/kolodny/immutability-helper)?
+
+- No need to call setState manually
+- No need to build syntactic sugar like `{x: {y: {$set: 1}}}`, just pass `x.y` and `1`
+
 
 ## Installation
 
@@ -14,7 +19,7 @@ npm i --save react-update
 ```
 
 
-## Usage
+## Todo Demo
 
 ```javascript
 import update from 'react-update'
@@ -53,90 +58,62 @@ class Todos extends Component {
 }
 ```
 
-## 解决什么问题？
-
-* 我们需要不可变数据，利用 shouldComponentUpdate 做性能优化
-* 很多 state 结构是嵌套的，setState 很不方便，如 Tree 组件、父子组件通信等场景
-* 实际开发中，大量的交互归结于 state 的处理，即数据的赋值、添加、删除等操作，可以减少大量的重复代码
 
 ## API
 
-```javascript
-
-// set
-update('set', 'x', 0)
-update('set', {x: 0})
-update('set', {x: 0, y: 0})
-update('set', 'a.b', 0)
-update('set', ['a', 'b'], 0)
-
-// push
-update('push', 'list', 1)
-
-// splice
-update('splice', 'list', 0)
-
-// return value
-this.state = {x: {y: 1}}
-update('set', 'x.y': 0) // => {x: {y: 0}}
-```
-
-## 开发者调试功能
-
-非 production 模式下，调用 update 后，控制台输出 update 所属组件更新后的 state，方便定位问题
-
-
-## shouldComponentUpdate 优化
-
-update 的处理过程是不可变的，结合 shouldComponentUpdate 优化才能发挥其核心价值，为了省事，无需每个组件单独添加 shouldComponentUpdate 方法，全局定义一下即可:
+### Bind component and execute setState automatically
 
 ```javascript
-// ShadowEqual except function props.
-function isEqual(source, target) {
-  if (!source) return true
-  return Object.keys(source).every(key => {
-    let isEqual = true
-    const prop = source[key]
-    if (typeof prop !== 'function' && target[key] !== source[key]) {
-      isEqual = false
-    }
-    return isEqual
-  })
-}
+import update from 'react-update'
 
-// Global optimizing for immutable data.
-const prototype = React.Component.prototype
-if (!prototype.shouldComponentUpdate) {
-  prototype.shouldComponentUpdate = function(nextProps, nextState) {
-    if (nextProps.children) return true
-    return !(isEqual(nextProps, this.props) && isEqual(nextState, this.state))
+class App extends Component {
+  
+  constructor() {
+    super()
+    this.update = update.bind(this)
+  }
+  
+  someUsage() {
+    this.update('set', 'x', 0)
+    this.update('set', 'x.y', 0)
+    this.update('set', ['x', 'y'], 0)
+    this.update('set', {
+      x: 0, 
+      y: 0
+    })
+    this.update('push', 'list', 1)
+    this.update('splice', 'list', 0)
+    const result = this.update('set', 'x.y': 0) 
+    console.log(result) // => {x: {y: 0}}
+
+    // All above actions just render once and all state has changed.
   }
 }
 ```
 
-组件写法上也要注意：
-
-1、使用 class 代替 React.createClass
-
-2、除函数类型外，不要重写创建对象，否则无法保证相等
-
-例如
+### Silent usage
 
 ```javascript
-render() {
-  return <div style={{color: '#999'}}></div>
-}
+import update from 'react-update'
+
+const myData = {x: {y: 0}}
+const newData = update(myData, 'set', 'x.y', 1)
+console.log(newData) // {x: {y: 1}}
 ```
 
-需要改成
 
-```javascript
-constructor() {
-  this.style = {
-    color: '#999'
-  }
-}
-render() {
-  return <div style={this.style}></div>
-}
+## Changelog
+
+### v0.4.0
+
+`2016-10-26`
+
+- Remove console info when state change.
+- Add silent usage which would not execute setState automatically.
+```js
+import update from 'react-update'
+
+const myData = {x: {y: 1}}
+const newData = update(myData, 'set', 'x.y', 2)
+console.log(newTarget) // {x: {y: 2}}
 ```
