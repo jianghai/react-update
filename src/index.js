@@ -8,8 +8,7 @@
  */
 
 import { Component } from 'react'
-import reactAddonsUpdate from 'react-addons-update'
-import warning from 'warning'
+import immutabilityUpdate from 'immutability-helper'
 
 const LAST_STATE = '__lastState'
 const isPlainObject = obj => Object.prototype.toString.call(obj) === '[object Object]'
@@ -72,7 +71,7 @@ const getDestructPath = path => {
 
 // Get the result of `https://facebook.github.io/react/docs/update.html`
 const getSingleExtendData = (source, type, path, value) => {
-  return reactAddonsUpdate(source, getExtendData(type, path, value))
+  return immutabilityUpdate(source, getExtendData(type, path, value))
 }
 
 // If you bind update to the instance of React Component, the arguments could be 
