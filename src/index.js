@@ -7,16 +7,16 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-
-import React from 'react'
-import _update from 'react-addons-update'
+import { Component } from 'react'
+import reactAddonsUpdate from 'react-addons-update'
 import warning from 'warning'
 
+
 const LAST_STATE = '__lastState'
+const isPlainObject = obj => Object.prototype.toString.call(obj) === '[object Object]'
 
-// Build target object for react-addons-update
-function getTarget(type, path, value) {
 
+const getExtendDataCommand = (type, value) => {
   if (type === 'push') {
     value = [value]
   } else if (type === 'splice') {
@@ -25,7 +25,12 @@ function getTarget(type, path, value) {
   value = {
     ['$' + type]: value
   }
+  return value
+}
 
+
+// [a, b] with 1 => {a: {b: 1}}
+const getNestedDataTarget = (path, value) => {
   let target = {}
   let lastKey
   if (path) {
@@ -46,78 +51,98 @@ function getTarget(type, path, value) {
   return target
 }
 
-// Destruct path with first prop and remain path.
-// Such as: 'a.b.c' or ['a', 'b', 'c'] and return ['a', ['b', 'c']].
-function getDestructPath(path) {
+
+// Get the second parameter of `https://facebook.github.io/react/docs/update.html`
+const getExtendData = (type, path, value) => {
+  return getNestedDataTarget(path, getExtendDataCommand(type, value))
+}
+
+
+// 'a.b.c' => ['a', 'b', 'c']
+const getPathArray = path => {
   if (typeof path === 'string') {
     path = path.split(/\.|\[|\]/).filter(v => !!v)
-  } 
+  }
+  return path
+}
+
+
+// Destruct path with first prop and remain path.
+// Such as: 'a.b.c' or ['a', 'b', 'c'] and return ['a', ['b', 'c']].
+const getDestructPath = path => {
+  path = getPathArray(path)
   const prop = path.shift()
   if (!path.length) path = null
   return [prop, path]
 }
 
-// Entry and namespace
-const update = function(...args) {
 
-  if (!this) {
-    warning(false, 'No `this` bind to update, try `this.update = update.bind(this)` in the constructor.')
-    return 
-  }
-  
-  let source = this.state
-  const nextState = {}
-  const isSingle = typeof args[0] === 'string'
-
-  function updateNextState(type, path, value) {
-    if (Object.prototype.toString.call(path) === '[object Object]') {
-      Object.keys(path).forEach(key => {
-        updateNextState(type, key, path[key])
-      })
-    } else {
-      const [prop, remainPath] = getDestructPath(path)
-      if (!remainPath && type === 'set') {
-        nextState[prop] = value
-      } else {
-        if (prop in nextState) {
-          // Prevent to be overrided
-          source[prop] = nextState[prop]
-        }
-        nextState[prop] = _update(source[prop], getTarget(type, remainPath, value))
-      }
-    }
-  }
-
-  // Update source object for multipe calls.
-  // Warn: take care of it when react update.
-  const queue = this._reactInternalInstance._pendingStateQueue
-  if (queue) {
-    this[LAST_STATE] = Object.assign(this[LAST_STATE] || {}, queue[queue.length - 1])
-    source = Object.assign({}, source, this[LAST_STATE])
-  } else {
-    delete this[LAST_STATE]
-  }
-
-  if (isSingle) {
-    updateNextState(...args)
-  } else {
-    args.forEach(arg => {
-      updateNextState(...arg)
-    })
-  }
-
-  this.setState(nextState)
-
-  if (process.env.NODE_ENV !== 'production') {
-    console.info(this.constructor.name + ' new state: ', nextState)
-  }
-
-  const keys = Object.keys(nextState)
-  return keys.length === 1 ? nextState[keys[0]] : nextState
+// Get the result of `https://facebook.github.io/react/docs/update.html`
+const getSingleExtendData = (source, type, path, value) => {
+  return reactAddonsUpdate(source, getExtendData(type, path, value))
 }
 
-update.silent = (target, type, value, path) => {
-  return _update(target, getTarget(type, path, value))
+
+// If you bind update to the instance of React Component, the arguments could be 
+// [type, path, value] or [type, {path1: value1, path2: value2}] which was changed 
+// based on the component state and execute stateState automatically. 
+// Another way, if you call update purely, the argumets could be 
+// [target, type, value, path], the path is not required and will not execute stateState.
+// Anyway, the return value of update would be the newData, if you changed multuple 
+// props, the newData would be an key-value object.
+const update = function(...args) {
+
+  if (this && this.isReactComponent) {
+
+    // Cache prevState when call this.update multiple times.
+    // Warn: take care of it when react update.
+    const queue = this._reactInternalInstance._pendingStateQueue
+    if (queue) {
+      if (this[LAST_STATE]) {
+        Object.assign(this[LAST_STATE], queue.pop())
+      } else {
+        this[LAST_STATE] = Object.assign({}, this.state, queue.pop())
+      }
+    } else {
+      delete this[LAST_STATE]
+    }
+
+    const [type, path, value] = args
+    const currentState = this[LAST_STATE] || this.state
+    const nextState = {}
+
+    const updateNextState = (type, path, value) => {
+      if (isPlainObject(path)) {
+        // For multipe props
+        Object.keys(path).forEach(key => {
+          updateNextState(type, key, path[key])
+        })
+      } else {
+        const [prop, remainPath] = getDestructPath(path)
+        if (!remainPath && type === 'set') {
+          // No need to update immutably
+          nextState[prop] = value
+        } else {
+          // Prevent to be overrided when call update by multipe props
+          if (prop in nextState) {
+            currentState[prop] = nextState[prop]
+          }
+          nextState[prop] = getSingleExtendData(currentState[prop], type, remainPath, value)
+        }
+      }
+    }
+
+    updateNextState(type, path, value)
+    this.setState(nextState)
+
+    const keys = Object.keys(nextState)
+    return keys.length === 1 ? nextState[keys[0]] : nextState
+
+  } else {
+
+    const [source, type, path, value] = args
+    return getSingleExtendData(source, type, getPathArray(path), value)
+  }
 }
 
 export default update

@@ -1,9 +1,15 @@
 import React, { Component } from 'react'
-import ReactDOM from 'react-dom'
 import TestUtils from 'react-addons-test-utils'
 import update from '../src'
 
-describe('update', () => {
+describe('pure update', () => {
+  it('should set works', () => {
+    let result = update({x: 1}, 'set', 'x', 2)
+    expect(result.x).toBe(2)
+  })
+})
+
+describe('update bind to component', () => {
 
   class Test extends Component {
     constructor() {
@@ -16,116 +22,89 @@ describe('update', () => {
         list: [0]
       }
     }
-    componentWillMount() {
-      this.props.update && this.props.update(this)
+    componentDidMount() {
+      this.props.onMount && this.props.onMount(this)
     }
     render() {
       return null
     }
   }
 
-  function render(update) {
-    return TestUtils.renderIntoDocument(<Test update={update} />)
-  }
+  let render
+
+  beforeEach(function() {
+    render = onMount => {
+      TestUtils.renderIntoDocument(<Test onMount={onMount} />)
+    }
+  })
 
   it('should split works', () => {
-    const { state } = render(instance => {
-      instance.update('set', 'x.y', 1)
-      instance.update('set', 'list[0]', 1)
+    render(instance => {
+      let result = instance.update('set', 'x.y', 1)
+      expect(result.y).toBe(1)
+      result = instance.update('set', 'list[0]', 1)
+      expect(result[0]).toBe(1)
     })
-    expect(state.x.y).toBe(1)
-    expect(state.list[0]).toBe(1)
   })
 
   it('should set works', () => {
-    const { state } = render(instance => {
-      instance.update('set', 'a', 1)
-      instance.update('set', ['x', 'y'], 1)
+    render(instance => {
+      let result = instance.update('set', 'a', 1)
+      expect(result).toBe(1)
+      result = instance.update('set', ['x', 'y'], 1)
+      expect(result.y).toBe(1)
     })
-    expect(state.a).toBe(1)
-    expect(state.x.y).toBe(1)
   })
 
   it('should push works', () => {
-    const { state } = render(instance => {
-      instance.update('push', 'list', 1)
+    render(instance => {
+      let result = instance.update('push', 'list', 1)
+      expect(result[1]).toBe(1)
     })
-    expect(state.list[1]).toBe(1)
   })
 
   it('should splice works', () => {
-    const { state } = render(instance => {
-      instance.update('splice', 'list', 0)
+    render(instance => {
+      let result = instance.update('splice', 'list', 0)
+      expect(result.length).toBe(0)
     })
-    expect(state.list.length).toBe(0)
   })
 
   it('should multiple props works', () => {
-    const { state } = render(instance => {
-      instance.update(['set', ['x', 'y'], 1], ['push', 'list', 1])
+    render(instance => {
+      let result = instance.update('set', {
+        'x.y': 1,
+        'x.z': 1,
+        'list': 1
+      })
+      expect(result.x.y).toBe(1)
+      expect(result.x.z).toBe(1)
+      expect(result.list).toBe(1)
     })
-    expect(state.x.y).toBe(1)
-    expect(state.list[1]).toBe(1)
   })
 
-
   it('should multiple calls saved', () => {
-    const { state } = render(instance => {
-      instance.update('set', ['x', 'y'], 1)
-      instance.update('set', ['x', 'z'], 1)
-      instance.update('push', 'list', 1)
-      instance.update('push', 'list', 1)
+    render(instance => {
+      instance.update('set', 'x.y', 1)
+      let result = instance.update('set', 'x.z', 1)
+      expect(result.y).toBe(1)
+      expect(result.z).toBe(1)
     })
-    expect(state.x.y).toBe(1)
-    expect(state.x.z).toBe(1)
-    expect(state.list[1]).toBe(1)
-    expect(state.list[2]).toBe(1)
   })
 
   it('should return works', () => {
     render(instance => {
-      const x = instance.update('set', ['x', 'y'], 1)
-      expect(x.y).toBe(1)
+      let result = instance.update('set', 'x.y', 1)
+      expect(result.y).toBe(1)
     })
   })
 
-  it('should return works which multiple orders passed', () => {
+  it('should return works with multiple props', () => {
     render(instance => {
-      const result = instance.update(['set', ['x', 'y'], 1], ['push', 'list', 1])
-      expect(result.x.y).toBe(1)
-      expect(result.list[1]).toBe(1)
-    })
-  })
-
-  it('should return works which multiple orders passed on single prop', () => {
-    render(instance => {
-      const x = instance.update(['set', ['x', 'y'], 1], ['set', ['x', 'z'], 1])
-      expect(x.y).toBe(1)
-      expect(x.z).toBe(1)
-    })
-  })
-
-  it('should return saved which multiple calls on single single prop', () => {
-    render(instance => {
-
-      instance.update('set', ['x', 'y'], 1)
-      const x = instance.update('set', ['x', 'z'], 1)
-      expect(x.y).toBe(1)
-      expect(x.z).toBe(1)
-
-      instance.update('push', 'list', 1)
-      const list = instance.update('push', 'list', 1)
-      expect(list[1]).toBe(1)
-      expect(list[2]).toBe(1)
-    })
-  })
-
-  it('should set multiple as object works', () => {
-    render(instance => {
-      const result = instance.update('set', {
+      let result = instance.update('set', {
         'x.y': 1,
         'x.z': 1,
-        list: 1
+        'list': 1
       })
       expect(result.x.y).toBe(1)
       expect(result.x.z).toBe(1)
