@@ -13,7 +13,7 @@ import immutabilityUpdate from 'immutability-helper'
 const LAST_STATE = '__lastState'
 const isPlainObject = obj => Object.prototype.toString.call(obj) === '[object Object]'
 
-const getExtendDataCommand = (type, value) => {
+const getImmutabilitySugarCommand = (type, value) => {
   if (type === 'push') {
     value = [value]
   } else if (type === 'splice') {
@@ -26,7 +26,7 @@ const getExtendDataCommand = (type, value) => {
 }
 
 // [a, b] with 1 => {a: {b: 1}}
-const getNestedDataTarget = (path, value) => {
+const getNestedData = (path, value) => {
   let target = {}
   let lastKey
   if (path) {
@@ -47,9 +47,12 @@ const getNestedDataTarget = (path, value) => {
   return target
 }
 
-// Get the second parameter of `https://facebook.github.io/react/docs/update.html`
-const getExtendData = (type, path, value) => {
-  return getNestedDataTarget(path, getExtendDataCommand(type, value))
+const getImmutabilitySugar = (type, path, value) => {
+  return getNestedData(path, getImmutabilitySugarCommand(type, value))
+}
+
+const getUpdatedData = (source, type, path, value) => {
+  return immutabilityUpdate(source, getImmutabilitySugar(type, path, value))
 }
 
 // 'a.b.c' => ['a', 'b', 'c']
@@ -69,9 +72,60 @@ const getDestructPath = path => {
   return [prop, path]
 }
 
-// Get the result of `https://facebook.github.io/react/docs/update.html`
-const getSingleExtendData = (source, type, path, value) => {
-  return immutabilityUpdate(source, getExtendData(type, path, value))
+// Cache last state when call update multiple times.
+// Warn: take care of it when react update.
+const getCachedLastState = instance => {
+  const internalInstance = instance._reactInternalInstance
+  const queue = internalInstance && internalInstance._pendingStateQueue
+  if (queue) {
+    if (instance[LAST_STATE]) {
+      Object.assign(instance[LAST_STATE], queue.pop())
+    } else {
+      instance[LAST_STATE] = Object.assign({}, instance.state, queue.pop())
+    }
+  } else {
+    delete instance[LAST_STATE]
+  }
+  return instance[LAST_STATE]
+}
+
+const updateState = function(...args) {
+
+  const [type, path, value] = args
+  const lastState = getCachedLastState(this) || this.state
+  const nextState = {}
+
+  const updateNextState = (type, path, value) => {
+    if (isPlainObject(path)) {
+      // For multipe props
+      Object.keys(path).forEach(key => {
+        updateNextState(type, key, path[key])
+      })
+    } else {
+      const [prop, remainPath] = getDestructPath(path)
+      if (!remainPath && type === 'set') {
+        // No need to update immutably
+        nextState[prop] = value
+      } else {
+        // Prevent to be overrided when call update by multipe props
+        if (prop in nextState) {
+          lastState[prop] = nextState[prop]
+        }
+        nextState[prop] = getUpdatedData(lastState[prop], type, remainPath, value)
+      }
+    }
+  }
+
+  updateNextState(type, path, value)
+  this.setState(nextState)
+
+  const keys = Object.keys(nextState)
+  return keys.length === 1 ? nextState[keys[0]] : nextState
+}
+
+const updateSilent = function(...args) {
+  const [source, type, path, value] = args
+  return getUpdatedData(source, type, getPathArray(path), value)
 }
 
 // If you bind update to the instance of React Component, the arguments could be 
@@ -82,57 +136,10 @@ const getSingleExtendData = (source, type, path, value) => {
 // Anyway, the return value of update would be the newData, if you changed multuple 
 // props, the newData would be an key-value object.
 const update = function(...args) {
-
   if (this && this.isReactComponent) {
-
-    // Cache prevState when call this.update multiple times.
-    // Warn: take care of it when react update.
-    const queue = this._reactInternalInstance._pendingStateQueue
-    if (queue) {
-      if (this[LAST_STATE]) {
-        Object.assign(this[LAST_STATE], queue.pop())
-      } else {
-        this[LAST_STATE] = Object.assign({}, this.state, queue.pop())
-      }
-    } else {
-      delete this[LAST_STATE]
-    }
-
-    const [type, path, value] = args
-    const currentState = this[LAST_STATE] || this.state
-    const nextState = {}
-
-    const updateNextState = (type, path, value) => {
-      if (isPlainObject(path)) {
-        // For multipe props
-        Object.keys(path).forEach(key => {
-          updateNextState(type, key, path[key])
-        })
-      } else {
-        const [prop, remainPath] = getDestructPath(path)
-        if (!remainPath && type === 'set') {
-          // No need to update immutably
-          nextState[prop] = value
-        } else {
-          // Prevent to be overrided when call update by multipe props
-          if (prop in nextState) {
-            currentState[prop] = nextState[prop]
-          }
-          nextState[prop] = getSingleExtendData(currentState[prop], type, remainPath, value)
-        }
-      }
-    }
-
-    updateNextState(type, path, value)
-    this.setState(nextState)
-
-    const keys = Object.keys(nextState)
-    return keys.length === 1 ? nextState[keys[0]] : nextState
-
+    return updateState.apply(this, args)
   } else {
-
-    const [source, type, path, value] = args
-    return getSingleExtendData(source, type, getPathArray(path), value)
+    return updateSilent(...args)
   }
 }
 
