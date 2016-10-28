@@ -54,13 +54,9 @@ const updateHelper = {
     return target
   },
 
-  getImmutabilitySugar(type, path, value) {
-    const command = updateHelper.getImmutabilitySugarCommand(type, value)
-    return updateHelper.getNestedData(path, command)
-  },
-
   update(source, type, path, value) {
-    const sugar = updateHelper.getImmutabilitySugar(type, path, value)
+    const command = updateHelper.getImmutabilitySugarCommand(type, value)
+    const sugar = updateHelper.getNestedData(path, command)
     return immutabilityUpdate(source, sugar)
   }
 }
