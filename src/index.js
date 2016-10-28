@@ -10,22 +10,26 @@
 import { Component } from 'react'
 import immutabilityUpdate from 'immutability-helper'
 
-const LAST_STATE = '__lastState'
-const isPlainObject = obj => Object.prototype.toString.call(obj) === '[object Object]'
+const commands = {
+
+  set(value) {
+    return {$set: value}
+  },
+
+  push(value) {
+    return {$push: [value]}
+  },
+  
+  splice(value) {
+    return {$splice: [[value, 1]]}
+  }
+}
 
 // Immutability update data using type, path, value.
 const updateHelper = {
 
   getImmutabilitySugarCommand(type, value) {
-    if (type === 'push') {
-      value = [value]
-    } else if (type === 'splice') {
-      value = [[value, 1]]
-    }
-    value = {
-      ['$' + type]: value
-    }
-    return value
+    return commands[type](value)
   },
 
   // [a, b] with 1 => {a: {b: 1}}
@@ -61,8 +65,14 @@ const updateHelper = {
   }
 }
 
+const LAST_STATE = '__lastState'
+
+function isPlainObject(obj) {
+  return Object.prototype.toString.call(obj) === '[object Object]'
+}
+
 // 'a.b.c' => ['a', 'b', 'c']
-const getPathArray = path => {
+function getPathArray(path) {
   if (typeof path === 'string') {
     path = path.split(/\.|\[|\]/).filter(v => !!v)
   }
@@ -71,7 +81,7 @@ const getPathArray = path => {
 
 // Destruct path with first prop and remain path.
 // Such as: 'a.b.c' or ['a', 'b', 'c'] and return ['a', ['b', 'c']].
-const getDestructPath = path => {
+function getDestructPath(path) {
   path = getPathArray(path)
   const prop = path.shift()
   if (!path.length) path = null
@@ -80,7 +90,7 @@ const getDestructPath = path => {
 
 // Cache last state when call update multiple times.
 // Warn: take care of it when react update.
-const getCachedLastState = instance => {
+function getCachedLastState(instance) {
   const internalInstance = instance._reactInternalInstance
   const queue = internalInstance && internalInstance._pendingStateQueue
   if (queue) {
@@ -95,13 +105,13 @@ const getCachedLastState = instance => {
   return instance[LAST_STATE]
 }
 
-const updateState = function(...args) {
+function updateState(...args) {
 
   const [type, path, value] = args
   const lastState = getCachedLastState(this) || this.state
   const nextState = {}
 
-  const updateNextState = (type, path, value) => {
+  function updateNextState(type, path, value) {
     if (isPlainObject(path)) {
       // For multipe props
       Object.keys(path).forEach(key => {
@@ -129,7 +139,7 @@ const updateState = function(...args) {
   return keys.length === 1 ? nextState[keys[0]] : nextState
 }
 
-const updateSilent = function(...args) {
+function updateSilent(...args) {
   const [source, type, path, value] = args
   return updateHelper.update(source, type, getPathArray(path), value)
 }
@@ -141,7 +151,7 @@ const updateSilent = function(...args) {
 // [target, type, path, value], the path is not required and will not execute stateState.
 // Anyway, the return value of update would be the newData, if you changed multuple 
 // props, the newData would be an key-value object.
-const update = function(...args) {
+function update(...args) {
   if (this && this.isReactComponent) {
     return updateState.apply(this, args)
   } else {
