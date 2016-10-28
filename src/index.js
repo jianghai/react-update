@@ -13,46 +13,52 @@ import immutabilityUpdate from 'immutability-helper'
 const LAST_STATE = '__lastState'
 const isPlainObject = obj => Object.prototype.toString.call(obj) === '[object Object]'
 
-const getImmutabilitySugarCommand = (type, value) => {
-  if (type === 'push') {
-    value = [value]
-  } else if (type === 'splice') {
-    value = [[value, 1]]
-  }
-  value = {
-    ['$' + type]: value
-  }
-  return value
-}
+// Immutability update data using type, path, value.
+const updateHelper = {
 
-// [a, b] with 1 => {a: {b: 1}}
-const getNestedData = (path, value) => {
-  let target = {}
-  let lastKey
-  if (path) {
-    let temp = target
-    if (Array.isArray(path)) {
-      lastKey = path.pop()
-      path.forEach(key => {
-        temp[key] = {}
-        temp = temp[key]
-      })
-    } else {
-      lastKey = path
+  getImmutabilitySugarCommand(type, value) {
+    if (type === 'push') {
+      value = [value]
+    } else if (type === 'splice') {
+      value = [[value, 1]]
     }
-    temp[lastKey] = value
-  } else {
-    target = value
+    value = {
+      ['$' + type]: value
+    }
+    return value
+  },
+
+  // [a, b] with 1 => {a: {b: 1}}
+  getNestedData(path, value) {
+    let target = {}
+    let lastKey
+    if (path) {
+      let temp = target
+      if (Array.isArray(path)) {
+        lastKey = path.pop()
+        path.forEach(key => {
+          temp[key] = {}
+          temp = temp[key]
+        })
+      } else {
+        lastKey = path
+      }
+      temp[lastKey] = value
+    } else {
+      target = value
+    }
+    return target
+  },
+
+  getImmutabilitySugar(type, path, value) {
+    const command = updateHelper.getImmutabilitySugarCommand(type, value)
+    return updateHelper.getNestedData(path, command)
+  },
+
+  update(source, type, path, value) {
+    const sugar = updateHelper.getImmutabilitySugar(type, path, value)
+    return immutabilityUpdate(source, sugar)
   }
-  return target
-}
-
-const getImmutabilitySugar = (type, path, value) => {
-  return getNestedData(path, getImmutabilitySugarCommand(type, value))
-}
-
-const getUpdatedData = (source, type, path, value) => {
-  return immutabilityUpdate(source, getImmutabilitySugar(type, path, value))
 }
 
 // 'a.b.c' => ['a', 'b', 'c']
@@ -111,7 +117,7 @@ const updateState = function(...args) {
         if (prop in nextState) {
           lastState[prop] = nextState[prop]
         }
-        nextState[prop] = getUpdatedData(lastState[prop], type, remainPath, value)
+        nextState[prop] = updateHelper.update(lastState[prop], type, remainPath, value)
       }
     }
   }
@@ -125,7 +131,7 @@ const updateState = function(...args) {
 
 const updateSilent = function(...args) {
   const [source, type, path, value] = args
-  return getUpdatedData(source, type, getPathArray(path), value)
+  return updateHelper.update(source, type, getPathArray(path), value)
 }
 
 // If you bind update to the instance of React Component, the arguments could be 
