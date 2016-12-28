@@ -74,21 +74,10 @@ describe('update bind to component', () => {
     render(instance => {
       let result = instance.update('set', {
         'x.y': 1,
-        'x.z': 1,
         'list': 1
       })
       expect(result.x.y).toBe(1)
-      expect(result.x.z).toBe(1)
       expect(result.list).toBe(1)
-    })
-  })
-
-  it('should multiple calls saved', () => {
-    render(instance => {
-      instance.update('set', 'x.y', 1)
-      let result = instance.update('set', 'x.z', 1)
-      expect(result.y).toBe(1)
-      expect(result.z).toBe(1)
     })
   })
 
@@ -103,11 +92,9 @@ describe('update bind to component', () => {
     render(instance => {
       let result = instance.update('set', {
         'x.y': 1,
-        'x.z': 1,
         'list': 1
       })
       expect(result.x.y).toBe(1)
-      expect(result.x.z).toBe(1)
       expect(result.list).toBe(1)
     })
   })

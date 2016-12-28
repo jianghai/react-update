@@ -71,20 +71,26 @@ class App extends Component {
   constructor() {
     super()
     this.update = update.bind(this)
+    this.state = {
+      name: 'John',
+      relation: {
+        family: 0,
+        friend: 1
+      },
+      honor: ['1', '2', '3']
+    }
   }
   
   someUsage() {
-    this.update('set', 'x', 0)
-    this.update('set', 'x.y', 0)
-    this.update('set', ['x', 'y'], 0)
+    this.update('set', 'name', 'Wall')
+    this.update('set', 'relation.family', 1)
+    this.update('set', ['relation', 'family'], 0)
     this.update('set', {
-      x: 0, 
-      y: 0
+      name: 'Jamas', 
+      'relation.friend': 0
     })
-    this.update('push', 'list', 1)
-    this.update('splice', 'list', 0)
-    const result = this.update('set', 'x.y': 0) 
-    console.log(result) // => {x: {y: 0}}
+    this.update('push', 'honor', '4') // ['1', '2', '3', '4']
+    this.update('splice', 'honor', 0) // ['2', '3', '4']
 
     // All above actions just render once and all state has changed.
   }

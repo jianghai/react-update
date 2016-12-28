@@ -61,7 +61,7 @@ const updateHelper = {
   }
 }
 
-const LAST_STATE = '__lastState'
+// const LAST_STATE = '__lastState'
 
 function isPlainObject(obj) {
   return Object.prototype.toString.call(obj) === '[object Object]'
@@ -84,30 +84,12 @@ function getDestructPath(path) {
   return [prop, path]
 }
 
-// Cache last state when call update multiple times.
-// Warn: take care of it when react update.
-function getCachedLastState(instance) {
-  const internalInstance = instance._reactInternalInstance
-  const queue = internalInstance && internalInstance._pendingStateQueue
-  if (queue) {
-    if (instance[LAST_STATE]) {
-      Object.assign(instance[LAST_STATE], queue.pop())
-    } else {
-      instance[LAST_STATE] = Object.assign({}, instance.state, queue.pop())
-    }
-  } else {
-    delete instance[LAST_STATE]
-  }
-  return instance[LAST_STATE]
-}
-
 function updateState(...args) {
 
   const [type, path, value] = args
-  const lastState = getCachedLastState(this) || this.state
   const nextState = {}
 
-  function updateNextState(type, path, value) {
+  const updateNextState = (type, path, value) => {
     if (isPlainObject(path)) {
       // For multipe props
       Object.keys(path).forEach(key => {
@@ -119,11 +101,7 @@ function updateState(...args) {
         // No need to update immutably
         nextState[prop] = value
       } else {
-        // Prevent to be overrided when call update by multipe props
-        if (prop in nextState) {
-          lastState[prop] = nextState[prop]
-        }
-        nextState[prop] = updateHelper.update(lastState[prop], type, remainPath, value)
+        nextState[prop] = updateHelper.update(this.state[prop], type, remainPath, value)
       }
     }
   }
