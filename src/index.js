@@ -7,7 +7,6 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-import { Component } from 'react'
 import immutabilityUpdate from 'immutability-helper'
 
 const commands = {
